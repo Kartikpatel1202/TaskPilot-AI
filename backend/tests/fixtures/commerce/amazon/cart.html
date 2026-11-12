@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en-IN">
+<head><meta charset="utf-8"><title>Amazon.in (test fixture) Shopping Cart</title><link rel="stylesheet" href="amazon.css"><script src="amazon.js"></script></head>
+<body>
+<div id="app"></div>
+<script>
+  const app = document.getElementById("app");
+  function render() {
+    const lines = Object.entries(cart()).map(([asin, q]) => ({ p: CATALOG.find((x) => x.asin === asin), q })).filter((x) => x.p);
+    const count = lines.reduce((a, x) => a + x.q, 0);
+    const sub = lines.reduce((a, x) => a + price(x.p) * x.q, 0);
+    const rows = lines.map(({ p, q }) => `<div class="sc-list-item" data-asin="${p.asin}" data-quantity="${q}" data-price="${price(p)}">
+        <div><a class="sc-product-link" href="product.html?asin=${p.asin}"><span class="a-truncate sc-product-title"><span class="a-truncate-full">${p.title}</span></span></a>
+        <div class="sc-product-availability">In stock</div>
+        <label>Qty: <select name="quantity" aria-label="Quantity for ${p.title.slice(0, 40)}">${[0, 1, 2, 3, 4, 5].map((n) => `<option value="${n}" ${n === q ? "selected" : ""}>${n === 0 ? "0 (Delete)" : n}</option>`).join("")}</select></label></div>
+        <div class="sc-item-price-block"><span class="sc-product-price">${inr(price(p))}</span></div></div>`).join("");
+    app.innerHTML = nav() + `<main><h1>Shopping Cart</h1>
+      <div id="sc-active-cart" data-name="Active Items">${rows || "<h2>Your Amazon Cart is empty.</h2>"}</div>
+      ${count ? `<div id="sc-subtotal-label-activecart">Subtotal (${count} item${count > 1 ? "s" : ""}):</div><span id="sc-subtotal-amount-activecart"><span class="sc-price">${inr(sub)}</span></span>
+        <form id="sc-buy-box-ptc-button" action="checkout.html"><input class="a-button-input" type="submit" name="proceedToRetailCheckout" value="Proceed to Buy" aria-labelledby="sc-buy-box-ptc-button-announce"><span id="sc-buy-box-ptc-button-announce">Proceed to Buy</span></form>` : ""}</main>`;
+    app.querySelectorAll("select[name=quantity]").forEach((s) => s.addEventListener("change", () => {
+      const asin = s.closest("[data-asin]").dataset.asin;
+      setTimeout(() => { setQty(asin, Number(s.value)); render(); }, 250);
+    }));
+  }
+  render();
+</script>
+</body>
+</html>
