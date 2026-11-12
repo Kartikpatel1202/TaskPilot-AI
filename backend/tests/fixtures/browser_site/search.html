@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Search — TaskPilot Demo Shop</title>
+  <link rel="stylesheet" href="shop.css" />
+  <script src="shop.js"></script>
+</head>
+<body>
+  <header>
+    <h1>TaskPilot Demo Shop</h1>
+    <nav><a href="index.html">Home</a> · <a href="cart.html">Cart (<span data-cart-count>0</span>)</a></nav>
+  </header>
+  <main>
+    <form action="search.html" method="get" role="search">
+      <label for="q">Search products</label>
+      <input id="q" name="q" type="search" placeholder="Search for products" autocomplete="off" />
+      <button type="submit">Search</button>
+    </form>
+    <p id="status" role="status"></p>
+    <!-- Results render after a delay to exercise dynamic-DOM handling. -->
+    <ul id="search-results" aria-label="Search results"></ul>
+  </main>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const q = new URLSearchParams(location.search).get("q") || "";
+      document.getElementById("q").value = q;
+      renderResults(q, document.getElementById("search-results"), 400);
+    });
+  </script>
+</body>
+</html>
