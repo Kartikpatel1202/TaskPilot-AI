@@ -1,0 +1,16 @@
+body { font-family: system-ui, sans-serif; margin: 0; background: #fff; color: #0f0f0f; }
+.fixture-banner { background: #fde68a; color: #78350f; padding: 6px 12px; font-size: 13px; font-weight: 600; }
+#masthead { display: flex; gap: 16px; align-items: center; padding: 10px 16px; border-bottom: 1px solid #e5e5e5; }
+.logo { font-weight: 700; color: #c00; }
+#search { width: 360px; padding: 6px 10px; }
+#contents, #watch { padding: 16px; }
+ytd-video-renderer { display: flex; gap: 12px; margin-bottom: 14px; }
+.thumb { width: 168px; height: 94px; background: #222; color: #fff; display: flex; align-items: flex-end; justify-content: flex-end; }
+.thumb span { background: rgba(0,0,0,.8); padding: 1px 4px; font-size: 12px; }
+#video-title { font-size: 16px; color: #0f0f0f; text-decoration: none; font-weight: 600; }
+#metadata-line span { margin-right: 8px; color: #606060; font-size: 13px; }
+ytd-channel-name { display: block; color: #606060; font-size: 13px; margin-top: 4px; }
+.html5-video-player { position: relative; width: 640px; height: 360px; background: #000; }
+video { width: 640px; height: 360px; }
+.ytp-play-button { margin-top: 8px; }
+.ytp-error, .gate { padding: 40px; background: #111; color: #fff; width: 560px; }
