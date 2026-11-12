@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Blinkit (test fixture) — groceries in minutes</title><link rel="stylesheet" href="blinkit.css"><script src="blinkit.js"></script></head>
+<body>
+<div id="app"></div>
+<script>
+  const app = document.getElementById("app");
+  if (flag("captcha")) app.innerHTML = header() + captchaPage();
+  else app.innerHTML = header() + `<main><h1>Stores near you</h1><p>Dairy, Bread &amp; Eggs · Fruits &amp; Vegetables</p></main>` + (flag("location") ? "" : locationModal());
+  renderCartCount();
+</script>
+</body>
+</html>
