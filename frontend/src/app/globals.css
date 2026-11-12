@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------ theme tokens
+ * Dark-first. Values are HSL triplets so Tailwind opacity modifiers work.
+ */
+@layer base {
+  :root,
+  .dark {
+    --background: 228 45% 4%;
+    --foreground: 215 30% 94%;
+
+    --surface: 225 35% 8%;
+    --surface-raised: 224 30% 11%;
+    --surface-sunken: 228 40% 5%;
+
+    --card: 225 35% 8%;
+    --card-foreground: 215 30% 94%;
+    --popover: 225 35% 9%;
+    --popover-foreground: 215 30% 94%;
+
+    --primary: 187 92% 55%;
+    --primary-foreground: 228 45% 6%;
+    --secondary: 224 26% 15%;
+    --secondary-foreground: 215 30% 92%;
+    --muted: 224 24% 14%;
+    --muted-foreground: 218 16% 64%;
+    --accent: 262 83% 68%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 223 24% 17%;
+    --input: 222 22% 20%;
+    --ring: 187 92% 55%;
+
+    --brand-cyan: 187 92% 55%;
+    --brand-violet: 262 83% 70%;
+
+    --level-debug: 218 14% 60%;
+    --level-info: 199 92% 64%;
+    --level-warning: 38 95% 58%;
+    --level-error: 0 86% 66%;
+    --level-success: 152 64% 52%;
+
+    --radius: 0.75rem;
+    --font-sans: "Inter", "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, -apple-system, "Noto Sans", "Noto Sans Devanagari", sans-serif;
+    --font-mono: "JetBrains Mono", "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    color-scheme: dark;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body {
+    @apply min-h-dvh bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  body {
+    background-image:
+      radial-gradient(60rem 30rem at 85% -10%, hsl(var(--brand-violet) / 0.08), transparent 60%),
+      radial-gradient(50rem 28rem at 10% -15%, hsl(var(--brand-cyan) / 0.07), transparent 60%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: hsl(var(--brand-cyan) / 0.3);
+  }
+
+  :focus-visible {
+    outline: none;
+  }
+}
+
+@layer components {
+  /* Standard panel: dark slate with a thin translucent border. */
+  .panel {
+    background: linear-gradient(180deg, hsl(var(--surface-raised) / 0.75), hsl(var(--surface) / 0.85));
+    border: 1px solid hsl(0 0% 100% / 0.07);
+    box-shadow: 0 1px 0 0 hsl(0 0% 100% / 0.03) inset, 0 20px 40px -24px hsl(0 0% 0% / 0.6);
+  }
+
+  /* Glass panel used sparingly (command center, dialog). */
+  .panel-strong {
+    background: linear-gradient(180deg, hsl(var(--surface-raised) / 0.92), hsl(var(--surface) / 0.94));
+    border: 1px solid hsl(0 0% 100% / 0.1);
+    backdrop-filter: blur(18px) saturate(140%);
+  }
+
+  .glow-ring {
+    box-shadow:
+      0 0 0 1px hsl(var(--brand-cyan) / 0.35),
+      0 0 32px -10px hsl(var(--brand-cyan) / 0.45),
+      0 0 60px -30px hsl(var(--brand-violet) / 0.5);
+  }
+
+  .text-gradient {
+    background: linear-gradient(90deg, hsl(var(--brand-cyan)), hsl(var(--brand-violet)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(0 0% 100% / 0.12) transparent;
+  }
+
+  .grid-backdrop {
+    background-image:
+      linear-gradient(hsl(0 0% 100% / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(0 0% 100% / 0.03) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
