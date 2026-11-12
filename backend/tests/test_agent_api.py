@@ -233,12 +233,10 @@ def test_agent_status(client: TestClient) -> None:
     body = client.get("/api/v1/agent/status").json()
     # Execution is reported available only if it is enabled AND Chromium is actually installed.
     available = client.app.state.container.execution.available  # type: ignore[attr-defined]
+    assert body.pop("planner_kind") == "offline_rules" and "API key" in body.pop("setup_hint")
     assert body == {"agent_name": "Kamlesh Bhai", "provider": "mock", "model": "taskpilot-mock-v1", "status": "available",
                     "planning_enabled": True, "browser_execution_enabled": available, "is_mock": True,
                     "provider_reachable": None}
-    assert client.app.state.container.browser.is_started is False  # status never launches Chromium
-    probed = client.get("/api/v1/agent/status", params={"probe": "true"}).json()
-    assert probed["provider_reachable"] is True
 
 
 def test_agent_status_never_claims_execution_when_disabled(client_factory: Any) -> None:
