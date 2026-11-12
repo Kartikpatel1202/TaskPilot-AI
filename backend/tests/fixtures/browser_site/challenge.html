@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Just a moment...</title></head>
+<body>
+<div style="background:#fde68a;padding:6px">LOCAL TEST FIXTURE — imitates a site security-check interstitial (no real CAPTCHA).</div>
+<p>Checking if the site connection is secure</p>
+<script>
+  // clear=N: the check finishes by itself after N ms (like a normal browser passing a JS check). No clear param: never.
+  const ms = Number(new URLSearchParams(location.search).get("clear") || 0);
+  if (ms > 0) setTimeout(() => { document.title = "Fixture Shop Home"; document.body.innerHTML = "<h1>Welcome to the fixture shop</h1>"; }, ms);
+</script>
+</body>
+</html>
