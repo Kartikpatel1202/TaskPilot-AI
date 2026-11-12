@@ -635,7 +635,7 @@ def classify(payload: dict[str, Any]) -> dict[str, Any]:
     shopping_words = bool(BUY_WORD.search(low))
     if commerce_site and not products and not shopping_words and OPEN_WORD.search(low) and not SEARCH_WORD.search(low):
         return result("BROWSER_NAVIGATION", 0.93, target_website=commerce_site.domain, entities={"products": [], "requested_actions": ["open"]})
-    if not products and (commerce_site or shopping_words or (shop_ctx and context.get("active_intent") == "ECOMMERCE_SHOPPING")):
+    if not products and not follow_up and (commerce_site or shopping_words or (shop_ctx and context.get("active_intent") == "ECOMMERCE_SHOPPING")):
         products = generic_products(text, sites)
     if not site and shop_ctx and products and not follow_up and context.get("active_intent") == "ECOMMERCE_SHOPPING":
         follow_up = True  # a bare product list answering "what should I add?" belongs to the same store
