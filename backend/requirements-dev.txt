@@ -1,8 +1,7 @@
-# Test and supply-chain tooling (not installed in the production image)
+﻿# Test and supply-chain tooling (not installed in the production image)
 -r requirements.txt
 fakeredis==2.26.2
 ruff==0.8.4
 bandit==1.8.0
 pip-audit==2.7.3
 mypy==1.13.0
-cyclonedx-bom==5.1.1
