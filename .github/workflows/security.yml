@@ -19,6 +19,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -r requirements-dev.txt
+      - run: python -m playwright install --with-deps chromium
       - name: Dependency vulnerabilities (pip-audit)
         continue-on-error: true
         run: pip-audit -r requirements.txt --strict
