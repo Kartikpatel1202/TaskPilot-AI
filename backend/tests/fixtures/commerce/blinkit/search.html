@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Search — Blinkit (test fixture)</title><link rel="stylesheet" href="blinkit.css"><script src="blinkit.js"></script></head>
+<body>
+<div id="app"></div>
+<script>
+  const app = document.getElementById("app");
+  let timer = null;
+  function render(q) {
+    const grid = document.getElementById("grid");
+    if (!q) { grid.innerHTML = ""; return; }
+    grid.innerHTML = '<p class="loading">Loading…</p>';
+    clearTimeout(timer);
+    timer = setTimeout(() => {   // results arrive late, like the real site
+      const hits = search(q);
+      grid.innerHTML = hits.length ? hits.map(card).join("") : `<p class="empty">No results for "${q.replace(/[<>&"]/g, "")}"</p>`;
+      wireCards(grid, () => render(q));
+    }, 600);
+  }
+  if (flag("captcha")) { app.innerHTML = header() + captchaPage(); }
+  else {
+    app.innerHTML = header() + `<main><div class="searchrow"><input type="text" placeholder="Search for atta dal and more" aria-label="Search for products" autofocus></div>
+      <div id="grid" class="grid" aria-label="Search results"></div></main>` + (flag("location") ? "" : locationModal());
+    const input = app.querySelector(".searchrow input");
+    const initial = new URLSearchParams(location.search).get("q") || "";
+    input.value = initial;
+    input.addEventListener("input", () => render(input.value.trim()));
+    render(initial);
+  }
+  renderCartCount();
+</script>
+</body>
+</html>
