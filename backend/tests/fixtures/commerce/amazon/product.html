@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en-IN">
+<head><meta charset="utf-8"><title>Amazon.in (test fixture): product</title><link rel="stylesheet" href="amazon.css"><script src="amazon.js"></script></head>
+<body>
+<div id="app"></div>
+<script>
+  const app = document.getElementById("app");
+  const asin = new URLSearchParams(location.search).get("asin");
+  const p = CATALOG.find((x) => x.asin === asin);
+  function render() {
+    if (!p) { app.innerHTML = nav() + "<main><h1>Page not found</h1></main>"; return; }
+    const specRows = Object.entries(p.specs).map(([k, v]) => `<tr><td class="a-span3"><span class="a-text-bold">${k}</span></td><td class="a-span9"><span class="po-break-word">${v}</span></td></tr>`).join("");
+    const siblings = CATALOG.filter((x) => x.asin !== p.asin && x.title.split("(")[0] === p.title.split("(")[0]);
+    const twister = siblings.length ? `<div id="twister_feature_div"><span class="a-form-label">Size:</span>
+      <ul><li class="a-button-selected"><button type="button" aria-pressed="true">${p.specs.RAM || ""} ${p.specs.Storage || ""}</button></li>
+      ${siblings.map((s) => `<li><a href="product.html?asin=${s.asin}" role="button" aria-pressed="false">${s.specs.RAM || ""} ${s.specs.Storage || ""}</a></li>`).join("")}</ul></div>` : "";
+    const added = get("added", null) === p.asin;
+    app.innerHTML = nav() + `<main id="dp"><h1 id="title"><span id="productTitle">${p.title}</span></h1>
+      <a id="bylineInfo" href="#">Visit the ${p.brand} Store</a>
+      <div id="corePriceDisplay_desktop_feature_div">${p.stock ? `<span class="a-price"><span class="a-offscreen">${inr(price(p))}</span><span aria-hidden="true">${inr(price(p))}</span></span>` : ""}</div>
+      ${twister}
+      <div id="productOverview_feature_div"><table class="a-normal">${specRows}</table></div>
+      <div id="availability"><span>${p.stock ? "In stock" : "Currently unavailable."}</span></div>
+      <div id="merchantInfoFeature_feature_div">Sold by <span id="sellerProfileTriggerId">${p.seller}</span></div>
+      <div id="mir-layout-DELIVERY_BLOCK">FREE delivery Tuesday, 10 November</div>
+      ${p.stock ? `<label>Quantity: <select id="quantity" name="quantity">${[1, 2, 3, 4, 5].map((n) => `<option value="${n}">${n}</option>`).join("")}</select></label>
+      <span id="submit.add-to-cart"><input id="add-to-cart-button" name="submit.add-to-cart" type="submit" value="Add to Cart" aria-labelledby="submit.add-to-cart-announce"><span id="submit.add-to-cart-announce">Add to Cart</span></span>` : ""}
+      ${added ? '<div id="NATC_SMART_WAGON_CONF_MSG_SUCCESS"><h1>Added to Cart</h1></div>' : ""}</main>`;
+    app.querySelector("#add-to-cart-button")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      const n = Number(app.querySelector("#quantity").value);
+      setTimeout(() => { setQty(p.asin, (cart()[p.asin] || 0) + n); set("added", p.asin); render(); }, 300);
+    });
+  }
+  set("added", null);
+  render();
+</script>
+</body>
+</html>
