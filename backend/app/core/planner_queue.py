@@ -109,6 +109,13 @@ class PlannerQueue:
     def is_active(self, task_id: UUID) -> bool:
         return task_id in self._active
 
+    async def wait_until_released(self, task_id: UUID, timeout: float = 5.0) -> None:
+        """Wait (bounded) until the job for this task has fully finished. A job that asked a clarification
+        question is still saving and publishing for a moment after the task became NEEDS_CLARIFICATION."""
+        deadline = asyncio.get_running_loop().time() + timeout
+        while task_id in self._active and asyncio.get_running_loop().time() < deadline:
+            await asyncio.sleep(0.02)
+
     def submit(self, job: PlanningJob) -> None:
         if self._closed:
             raise PlannerQueueClosedError("Planner is shutting down.")
