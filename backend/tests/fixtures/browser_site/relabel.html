@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Relabel test (LOCAL TEST FIXTURE)</title></head>
+<body>
+<div style="background:#fde68a;padding:6px">LOCAL TEST FIXTURE — DOM mutation / selector self-correction tests.</div>
+<h1>Results</h1>
+<ul id="results"><li>Result 1</li><li>Result 2</li></ul>
+<div id="controls"><button id="more" type="button">Show more results</button></div>
+<p id="status" role="status"></p>
+<script>
+  // After load the site re-renders its controls with new wording (a "redesign"): the old label disappears.
+  const params = new URLSearchParams(location.search);
+  const twin = params.get("twin") === "1";
+  // late=1: the old control is covered (not clickable) until the redesign replaces it, so a click that
+  // started on it must notice the element is gone instead of timing out.
+  const late = params.get("late") === "1";
+  if (late) {  // a transparent overlay intercepts clicks on the old control until the redesign lands
+    const veil = document.createElement("div");
+    veil.id = "veil";
+    veil.style.cssText = "position:fixed;inset:0;background:transparent;z-index:10";
+    document.body.appendChild(veil);
+  }
+  setTimeout(() => {
+    const c = document.getElementById("controls");
+    document.getElementById("veil")?.remove();
+    c.innerHTML = '<button type="button" class="load">Load more results</button>' + (twin ? '<button type="button" class="load">Load more reviews</button>' : "");
+    c.querySelectorAll(".load").forEach((b) => b.addEventListener("click", () => {
+      document.getElementById("status").textContent = "Loaded more: " + b.textContent;
+      const li = document.createElement("li"); li.textContent = "Result 3"; document.getElementById("results").appendChild(li);
+    }));
+  }, late ? 600 : 150);
+</script>
+</body>
+</html>
