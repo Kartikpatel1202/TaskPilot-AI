@@ -228,7 +228,8 @@ class ExecutionManager:
             raise ExecutionSessionBusyError(str(exc)) from exc
         except ExecutionQueueClosedError as exc:
             raise ExecutionUnavailableError(str(exc)) from exc
-        self._records[task_id] = record
+        # With the Redis queue a worker may already have registered (and finished) this job; keep its record.
+        record = self._records.setdefault(task_id, record)
         while len(self._records) > 500:
             self._records.popitem(last=False)
         logger.info("execution.queued", extra={"task_id": str(task_id)})
