@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Checkout — Blinkit (test fixture)</title><link rel="stylesheet" href="blinkit.css"><script src="blinkit.js"></script></head>
+<body>
+<div id="app"></div>
+<script>
+  const app = document.getElementById("app");
+  function render() {
+    const order = get("order", null);
+    if (order) {
+      app.innerHTML = header() + `<main data-order-confirmation><h1>Order placed</h1>
+        <p>Your order <b data-order-id>${order.id}</b> is confirmed (TEST FIXTURE — no real order).</p>
+        <p>Paid via Cash on Delivery · Total ${money(order.total)}</p></main>`;
+      return;
+    }
+    if (!flag("login")) {
+      app.innerHTML = header() + `<main><h1>Login</h1><p>Enter your mobile number to continue</p>
+        <label>Mobile number <input type="tel" name="phone" autocomplete="tel"></label>
+        <label>OTP <input name="otp" autocomplete="one-time-code"></label><button class="cta" type="button">Continue</button></main>`;
+      return;
+    }
+    const t = totals();
+    if (!t.items.length) { app.innerHTML = header() + "<main><h1>Checkout</h1><p>Your cart is empty</p></main>"; return; }
+    const cod = flag("cod");
+    const method = get("method", null);
+    const items = t.items.map(({ p, q }) => `<li data-checkout-item><span class="title">${p.name}</span> <span class="size">${p.size}</span> × <span data-qty>${q}</span> <span class="price">${money(price(p) * q)}</span></li>`).join("");
+    const cta = method === "cod"
+      ? `<button class="cta" type="button" id="place-order">Place Order</button>`
+      : method ? `<button class="cta" type="button" id="pay-now">Pay ${money(t.total)}</button>`
+      : `<button class="cta" type="button" disabled>Select a payment method</button>`;
+    app.innerHTML = header() + `<main><h1>Checkout</h1>
+      <section aria-label="Delivery address"><h2>Delivering to</h2><p data-address>Home: Flat 12, Fixture Lane, Sector 1, Gurugram 122001</p><p data-slot>Delivery in 12 minutes</p></section>
+      <section aria-label="Order summary"><h2>Order summary</h2><ul>${items}</ul></section>
+      <section class="bill" aria-label="Bill details">
+        <div><span>Items total</span><span data-bill="items">${money(t.sub)}</span></div>
+        <div><span>Delivery charge</span><span data-bill="delivery">${t.delivery ? money(t.delivery) : "FREE"}</span></div>
+        <div><span>Handling charge</span><span data-bill="handling">${money(t.handling)}</span></div>
+        <div><b>To pay</b><b data-bill="total">${money(t.total)}</b></div></section>
+      <section class="pay" aria-label="Payment options"><h2>Payment options</h2>
+        <label><input type="radio" name="pay" value="upi" ${method === "upi" ? "checked" : ""}> UPI</label>
+        <label><input type="radio" name="pay" value="card" ${method === "card" ? "checked" : ""}> Credit / Debit card</label>
+        ${cod ? `<label><input type="radio" name="pay" value="cod" ${method === "cod" ? "checked" : ""}> Cash on Delivery</label>` : '<p class="nocod">Cash on Delivery is not available for this order</p>'}
+      </section>${cta}</main>`;
+    app.querySelectorAll("input[name=pay]").forEach((r) => r.addEventListener("change", () => { set("method", r.value); render(); }));
+    app.querySelector("#place-order")?.addEventListener("click", () => {
+      const submits = get("submits", 0) + 1; set("submits", submits);   // lets tests prove a single submission
+      setTimeout(() => { set("order", { id: "FXB-" + String(100000 + submits), total: totals().total }); set("cart", {}); render(); }, 400);
+    });
+    app.querySelector("#pay-now")?.addEventListener("click", () => set("paid_attempt", true));
+    renderCartCount();
+  }
+  render();
+</script>
+</body>
+</html>
