@@ -1,0 +1,206 @@
+# TaskPilot AI — production stack (single host).
+#
+#   cp deployment/.env.production.example deployment/.env.production   # fill every CHANGE_ME
+#   docker compose -f deployment/docker-compose.prod.yml --env-file deployment/.env.production up -d --build
+#
+# Networks
+#   edge      : nginx <-> frontend/api (only nginx publishes ports)
+#   internal  : api <-> postgres/redis/clamav (internal: true — no route to the internet)
+#   egress    : api -> squid only; squid is the ONLY container with internet access for the api.
+# The api container has no default route to the internet: every outbound request (Chromium + httpx downloads)
+# must go through the egress proxy, which denies private, loopback, link-local and metadata ranges.
+# No container mounts the Docker control socket. Every service drops all capabilities and sets no-new-privileges.
+
+x-hardening: &hardening
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: { max-size: "20m", max-file: "5" }
+
+services:
+  nginx:
+    <<: *hardening
+    image: nginx:1.27-alpine
+    read_only: true
+    cap_add: [NET_BIND_SERVICE, CHOWN, SETUID, SETGID]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/security.conf:/etc/nginx/security.conf:ro
+      - ${TLS_CERT_DIR:-./nginx/certs}:/etc/nginx/certs:ro
+    tmpfs:
+      - /var/cache/nginx:size=64m
+      - /var/run:size=1m
+      - /tmp:size=16m
+    mem_limit: 256m
+    pids_limit: 200
+    depends_on:
+      api: { condition: service_healthy }
+      frontend: { condition: service_started }
+    networks: [edge]
+
+  frontend:
+    <<: *hardening
+    build:
+      context: ../frontend
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${PUBLIC_BASE_URL}
+        NEXT_PUBLIC_WS_BASE_URL: ${PUBLIC_WS_BASE_URL}
+    image: taskpilot-web:${TASKPILOT_VERSION:-latest}
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+      - /app/.next/cache:size=128m,uid=10001,gid=10001
+    mem_limit: 512m
+    pids_limit: 200
+    networks: [edge]
+
+  # One-shot schema migration; the api only starts after it succeeds.
+  migrate:
+    <<: *hardening
+    restart: "no"
+    build: ../backend
+    image: taskpilot-api:${TASKPILOT_VERSION:-latest}
+    read_only: true
+    env_file: .env.production
+    command: ["python", "-m", "alembic", "upgrade", "head"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    mem_limit: 256m
+    networks: [internal]
+
+  api:
+    <<: *hardening
+    image: taskpilot-api:${TASKPILOT_VERSION:-latest}
+    read_only: true
+    env_file: .env.production
+    environment:
+      APP_ENV: production
+      API_HOST: 0.0.0.0
+      EGRESS_PROXY_URL: http://egress:3128
+      REQUIRE_EGRESS_PROXY: "true"
+      QUEUE_BACKEND: redis
+      DATABASE_AUTO_CREATE: "false"
+      BROWSER_HEADLESS: "true"
+      BROWSER_PERSIST_SESSIONS: "false"
+    volumes:
+      - downloads:/app/runtime/downloads
+    tmpfs:
+      - /tmp:size=512m,uid=10001,gid=10001
+      - /home/taskpilot:size=64m,uid=10001,gid=10001
+    # Chromium needs a larger /dev/shm; the sandbox runs without extra capabilities.
+    shm_size: 512m
+    mem_limit: 3g
+    cpus: 2.0
+    pids_limit: 1024
+    ulimits:
+      nofile: { soft: 8192, hard: 8192 }
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+      egress: { condition: service_started }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready', timeout=4).status == 200 else 1)"]
+      interval: 30s
+      timeout: 6s
+      start_period: 60s
+      retries: 3
+    networks: [edge, internal, egress]
+
+  egress:
+    <<: *hardening
+    image: ubuntu/squid:6.6-24.04_beta
+    read_only: true
+    cap_add: [SETUID, SETGID, CHOWN]
+    volumes:
+      - ./egress/squid.conf:/etc/squid/squid.conf:ro
+    tmpfs:
+      - /var/spool/squid:size=64m
+      - /var/log/squid:size=64m
+      - /var/run:size=1m
+      - /run:size=1m
+    mem_limit: 256m
+    networks: [egress, internet]
+
+  postgres:
+    <<: *hardening
+    image: postgres:16-alpine
+    cap_add: [CHOWN, SETUID, SETGID, FOWNER, DAC_OVERRIDE]
+    read_only: true
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-taskpilot}
+      POSTGRES_USER: ${POSTGRES_USER:-taskpilot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../runtime/backups:/backups
+    tmpfs:
+      - /var/run/postgresql:size=1m
+      - /tmp:size=64m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    mem_limit: 1g
+    networks: [internal]
+
+  redis:
+    <<: *hardening
+    image: redis:7.4-alpine
+    read_only: true
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD}"]
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    mem_limit: 512m
+    networks: [internal]
+
+  # Optional: enable with `--profile scanning` and MALWARE_SCANNER=clamav.
+  clamav:
+    <<: *hardening
+    profiles: [scanning]
+    image: clamav/clamav:1.4
+    mem_limit: 2g
+    networks: [internal]
+
+  # Optional: enable with `--profile monitoring`.
+  prometheus:
+    <<: *hardening
+    profiles: [monitoring]
+    image: prom/prometheus:v2.55.1
+    read_only: true
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - ./monitoring/metrics_token:/etc/prometheus/metrics_token:ro
+      - promdata:/prometheus
+    mem_limit: 512m
+    networks: [edge]
+
+networks:
+  edge: {}
+  internal:
+    internal: true
+  egress:
+    internal: true
+  internet: {}
+
+volumes:
+  pgdata: {}
+  redisdata: {}
+  downloads: {}
+  promdata: {}
