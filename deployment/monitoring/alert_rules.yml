@@ -1,0 +1,48 @@
+groups:
+  - name: taskpilot
+    rules:
+      - alert: TaskPilotApiDown
+        expr: up{job="taskpilot-api"} == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations: { summary: "TaskPilot API is not being scraped (down or metrics token wrong)." }
+
+      - alert: TaskPilotHighErrorRate
+        expr: sum(rate(taskpilot_http_requests_total{status_class="5xx"}[5m])) / clamp_min(sum(rate(taskpilot_http_requests_total[5m])), 1) > 0.05
+        for: 10m
+        labels: { severity: warning }
+        annotations: { summary: "More than 5% of API requests are failing with 5xx." }
+
+      - alert: TaskPilotPersistenceFailures
+        expr: increase(taskpilot_persistence_write_failures_total[10m]) > 0
+        labels: { severity: critical }
+        annotations: { summary: "Database writes are failing — task state may not survive a restart." }
+
+      - alert: TaskPilotQueueBacklog
+        expr: max(taskpilot_queue_depth) > 100
+        for: 10m
+        labels: { severity: warning }
+        annotations: { summary: "Execution/planning queue is backing up." }
+
+      - alert: TaskPilotLlmErrors
+        expr: sum(rate(taskpilot_llm_errors_total[10m])) > 0.1
+        for: 10m
+        labels: { severity: warning }
+        annotations: { summary: "LLM provider errors are elevated (circuit breaker may be open)." }
+
+      - alert: TaskPilotBrowserLaunchFailures
+        expr: increase(taskpilot_browser_launch_failures_total[15m]) > 3
+        labels: { severity: warning }
+        annotations: { summary: "Chromium is failing to launch repeatedly." }
+
+      - alert: TaskPilotSlowPlanning
+        expr: histogram_quantile(0.95, sum(rate(taskpilot_planning_duration_seconds_bucket[15m])) by (le)) > 60
+        for: 15m
+        labels: { severity: warning }
+        annotations: { summary: "p95 planning latency above 60s." }
+
+      - alert: TaskPilotApprovalsPiling
+        expr: taskpilot_approval_pending > 20
+        for: 30m
+        labels: { severity: info }
+        annotations: { summary: "Many approvals are waiting for users." }
