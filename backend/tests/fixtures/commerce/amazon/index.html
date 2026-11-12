@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en-IN">
+<head><meta charset="utf-8"><title>Amazon.in (test fixture): Online Shopping</title><link rel="stylesheet" href="amazon.css"><script src="amazon.js"></script></head>
+<body>
+<div id="app"></div>
+<script>
+  document.getElementById("app").innerHTML = nav() + (flag("captcha") ? captcha() : '<main id="pageContent"><h1>Welcome</h1><p>Deals on laptops, mobiles and accessories.</p></main>');
+</script>
+</body>
+</html>
