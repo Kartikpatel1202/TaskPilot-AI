@@ -1,0 +1,59 @@
+name: security
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -r requirements-dev.txt
+      - name: Dependency vulnerabilities (pip-audit)
+        run: pip-audit -r requirements.txt --strict
+      - name: Static analysis (bandit, medium+ severity)
+        run: bandit -r app -ll -q
+      - name: Security test suite
+        run: python -m pytest tests/security -q
+      - name: SBOM (CycloneDX)
+        run: cyclonedx-py requirements requirements.txt -o sbom-backend.cdx.json
+      - uses: actions/upload-artifact@v4
+        with: { name: sbom-backend, path: backend/sbom-backend.cdx.json }
+
+  node:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: npm ci
+      - name: Dependency vulnerabilities (production deps)
+        run: npm audit --omit=dev --audit-level=high
+      - name: SBOM (CycloneDX)
+        run: npx --yes @cyclonedx/cyclonedx-npm@1.19.3 --omit dev --output-file sbom-frontend.cdx.json
+      - uses: actions/upload-artifact@v4
+        with: { name: sbom-frontend, path: frontend/sbom-frontend.cdx.json }
+
+  secrets:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
