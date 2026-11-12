@@ -1,0 +1,18 @@
+body { font-family: Arial, sans-serif; margin: 0; background: #fff; color: #0f1111; }
+#navbar { display: flex; gap: 12px; align-items: center; background: #131921; color: #fff; padding: 10px 16px; }
+#navbar a { color: #fff; text-decoration: none; }
+#nav-search-bar-form { flex: 1; display: flex; }
+#twotabsearchtextbox { flex: 1; padding: 8px; font-size: 15px; }
+#nav-search-submit-button { background: #febd69; border: 0; padding: 8px 12px; }
+.banner { margin: 0; padding: 6px 16px; background: #fff3cd; font-size: 12px; }
+main { padding: 16px; }
+.s-result-item { display: flex; gap: 12px; border-bottom: 1px solid #eee; padding: 12px 0; }
+.s-image { width: 120px; height: 90px; background: #f3f3f3; }
+.a-price { font-size: 20px; }
+.a-text-price { text-decoration: line-through; color: #565959; font-size: 13px; margin-left: 6px; }
+.a-offscreen { position: absolute; left: -9999px; }
+.a-button-primary, #add-to-cart-button { background: #ffd814; border: 1px solid #fcd200; border-radius: 20px; padding: 8px 18px; cursor: pointer; }
+.a-button-selected { outline: 2px solid #007185; }
+table td { padding: 4px 10px; border-bottom: 1px solid #eee; }
+.sc-list-item { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 12px 0; }
+#subtotals-marketplace-table td { padding: 4px 12px; }
