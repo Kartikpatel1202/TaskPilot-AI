@@ -97,11 +97,11 @@ async def test_ambiguous_grocery_command_asks_instead_of_inventing() -> None:
     assert result.clarification_question and "brand" in result.clarification_question.lower()
 
 
-async def test_unsupported_request() -> None:
+async def test_off_topic_question_gets_a_chat_reply_not_a_refusal() -> None:
+    # Questions that need no website are conversation (GENERAL_CHAT), not a refused task.
     result = await classify("What is the meaning of life?")
-    assert result.intent == IntentType.UNSUPPORTED
+    assert result.intent == IntentType.GENERAL_CHAT
     assert not result.requires_clarification
-
 
 @pytest.mark.parametrize(
     "attack",
