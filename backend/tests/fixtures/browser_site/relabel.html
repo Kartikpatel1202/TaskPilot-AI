@@ -8,7 +8,7 @@
 <div id="controls"><button id="more" type="button">Show more results</button></div>
 <p id="status" role="status"></p>
 <script>
-  // After load the site re-renders its controls with new wording (a "redesign"): the old label disappears.
+  // The site re-renders its controls with new wording (a "redesign"): the old label disappears.
   const params = new URLSearchParams(location.search);
   const twin = params.get("twin") === "1";
   // late=1: the old control is covered (not clickable) until the redesign replaces it, so a click that
@@ -20,7 +20,7 @@
     veil.style.cssText = "position:fixed;inset:0;background:transparent;z-index:10";
     document.body.appendChild(veil);
   }
-  setTimeout(() => {
+  const redesign = () => {
     const c = document.getElementById("controls");
     document.getElementById("veil")?.remove();
     c.innerHTML = '<button type="button" class="load">Load more results</button>' + (twin ? '<button type="button" class="load">Load more reviews</button>' : "");
@@ -28,7 +28,10 @@
       document.getElementById("status").textContent = "Loaded more: " + b.textContent;
       const li = document.createElement("li"); li.textContent = "Result 3"; document.getElementById("results").appendChild(li);
     }));
-  }, late ? 600 : 150);
+  };
+  // Default: the redesign happens while the page is still loading, so the plan's old label ("Show more results")
+  // is never clickable — deterministic on fast and slow machines. late=1 keeps a delayed swap.
+  if (late) setTimeout(redesign, 600); else redesign();
 </script>
 </body>
 </html>
