@@ -285,7 +285,8 @@ class AgentOrchestrator:
         await self._persist_plan(record, plan)
         message = plan.user_facing_message
         if plan.status == PlanStatus.READY:
-            await self._tasks.transition(record.task_id, TaskState.PLANNED, reason="Plan ready — runs only after you click Run Plan")
+            # Publish the plan before the task becomes PLANNED, so anyone reacting to PLANNED (or replaying the
+            # history right after it) always finds task.plan_ready.
             await self._emit(
                 record,
                 TelemetryEventType.TASK_PLAN_READY,
@@ -301,6 +302,7 @@ class AgentOrchestrator:
                     is_mock=plan.is_mock,
                 ),
             )
+            await self._tasks.transition(record.task_id, TaskState.PLANNED, reason="Plan ready — runs only after you click Run Plan")
             kind = "chat" if plan.intent == IntentType.GENERAL_CHAT else "plan_ready"
         elif plan.status == PlanStatus.NEEDS_CLARIFICATION:
             record.pending_question = plan.clarification_question
