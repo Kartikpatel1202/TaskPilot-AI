@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Product — Blinkit (test fixture)</title><link rel="stylesheet" href="blinkit.css"><script src="blinkit.js"></script></head>
+<body>
+<div id="app"></div>
+<script>
+  const app = document.getElementById("app");
+  const id = new URLSearchParams(location.search).get("id");
+  const p = CATALOG.find((x) => x.id === id);
+  function render() {
+    app.innerHTML = header() + (p ? `<main><h1>${p.name}</h1><div class="grid">${card(p)}</div></main>` : "<main><h1>Product not found</h1></main>");
+    wireCards(app, render);
+    renderCartCount();
+  }
+  render();
+</script>
+</body>
+</html>
