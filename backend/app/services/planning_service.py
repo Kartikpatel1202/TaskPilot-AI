@@ -135,6 +135,8 @@ class PlanningService:
             raise TaskNotAwaitingClarificationError(task.state)
         if self.queue.is_full:
             raise PlannerBusyError(_FAILURE_MESSAGES["PLANNER_QUEUE_FULL"])
+        # The job that asked the question may still be finishing; a quick answer must not be rejected as a duplicate.
+        await self.queue.wait_until_released(task_id)
 
         # The transition is the atomic gate: a concurrent second clarification fails here.
         await self._tasks.transition(task_id, TaskState.PLANNING, reason="Clarification received")
