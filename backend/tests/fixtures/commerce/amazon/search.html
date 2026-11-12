@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en-IN">
+<head><meta charset="utf-8"><title>Amazon.in (test fixture): search</title><link rel="stylesheet" href="amazon.css"><script src="amazon.js"></script></head>
+<body>
+<div id="app"></div>
+<script>
+  const app = document.getElementById("app");
+  const k = (new URLSearchParams(location.search).get("k") || "").trim();
+  function render() {
+    if (flag("captcha")) { app.innerHTML = nav() + captcha(); return; }
+    const words = k.toLowerCase().split(/[\s,]+/).filter((w) => w.length > 1 && !/^\d/.test(w) && !["under", "with", "and", "ram", "ssd", "gb", "the", "for"].includes(w));
+    const hits = CATALOG.filter((p) => words.length && words.every((w) => (p.title + " " + p.kw).toLowerCase().includes(w.replace(/s$/, ""))));
+    const results = hits.map((p) => `<div data-component-type="s-search-result" data-asin="${p.asin}" class="s-result-item">
+        <div class="s-image" role="img" aria-label="${p.title}"></div>
+        <div><h2 class="a-size-medium"><a class="a-link-normal" href="product.html?asin=${p.asin}"><span>${p.title}</span></a></h2>
+        <div><span class="a-icon-alt">${p.rating}</span> <span class="s-underline-text">${p.reviews}</span></div>
+        ${p.stock ? `<div><span class="a-price"><span class="a-offscreen">${inr(price(p))}</span><span aria-hidden="true">${inr(price(p))}</span></span>
+          ${p.mrp ? `<span class="a-price a-text-price"><span class="a-offscreen">${inr(p.mrp)}</span><span aria-hidden="true">M.R.P: ${inr(p.mrp)}</span></span>` : ""}</div>
+        <div data-cy="delivery-recipe">FREE delivery Tue, 10 Nov</div>` : '<div class="a-color-price">Currently unavailable.</div>'}
+        </div></div>`).join("");
+    app.innerHTML = nav() + `<main><span data-component-type="s-result-info-bar">${hits.length} results for "${k.replace(/[<>&"]/g, "")}"</span>
+      <div class="s-main-slot s-result-list">${results || "<p>No results found.</p>"}</div></main>`;
+    app.querySelector("#twotabsearchtextbox").value = k;
+  }
+  setTimeout(render, 500);   // results arrive after a delay
+  app.innerHTML = nav() + "<main><p>Loading results…</p></main>";
+</script>
+</body>
+</html>
