@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>TaskPilot Demo Shop</title>
+  <link rel="stylesheet" href="shop.css" />
+  <script src="shop.js"></script>
+</head>
+<body>
+  <header>
+    <h1>TaskPilot Demo Shop</h1>
+    <p class="note">Local test fixture — not a real store. Nothing can be bought here.</p>
+    <nav><a href="index.html">Home</a> · <a href="cart.html">Cart (<span data-cart-count>0</span>)</a> · <a href="login.html">Sign in</a></nav>
+  </header>
+  <main>
+    <form action="search.html" method="get" role="search">
+      <label for="q">Search products</label>
+      <input id="q" name="q" type="search" placeholder="Search for products" autocomplete="off" />
+      <button type="submit">Search</button>
+    </form>
+    <section aria-label="Popular items">
+      <h2>Popular items</h2>
+      <ul id="popular"></ul>
+    </section>
+  </main>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const ul = document.getElementById("popular");
+      PRODUCTS.slice(4, 6).forEach((p) => ul.appendChild(productCard(p)));
+    });
+  </script>
+</body>
+</html>
