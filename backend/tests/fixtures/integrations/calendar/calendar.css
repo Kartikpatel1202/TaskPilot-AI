@@ -1,0 +1,13 @@
+body { font-family: system-ui, sans-serif; margin: 0; padding: 0 0 40px; color: #1f1f1f; }
+.fixture-banner { background: #fde68a; color: #78350f; padding: 6px 12px; font-size: 13px; font-weight: 600; }
+h1 { padding: 0 16px; font-size: 20px; }
+#grid, #form { padding: 0 16px; }
+.ev { background: #039be5; color: #fff; padding: 6px 10px; margin: 6px 0; border-radius: 6px; max-width: 420px; }
+#form input { display: block; margin: 6px 0; padding: 6px; width: 360px; }
+.row { display: flex; gap: 6px; align-items: center; }
+.row input { width: 160px !important; }
+.desc { border: 1px solid #ddd; min-height: 40px; padding: 6px; width: 360px; }
+.guest { background: #e8eaed; display: inline-block; padding: 2px 8px; border-radius: 10px; margin: 2px; }
+#xSaveBu { background: #0b57d0; color: #fff; border: 0; padding: 8px 20px; border-radius: 16px; margin-top: 10px; }
+.dialog { position: fixed; top: 30%; left: 30%; background: #fff; padding: 20px; box-shadow: 0 0 20px rgba(0,0,0,.3); }
+#toast { position: fixed; left: 16px; bottom: 16px; background: #323232; color: #fff; padding: 8px 14px; border-radius: 4px; display: none; }
