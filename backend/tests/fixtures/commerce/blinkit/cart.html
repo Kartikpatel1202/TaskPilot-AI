@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>My Cart — Blinkit (test fixture)</title><link rel="stylesheet" href="blinkit.css"><script src="blinkit.js"></script></head>
+<body>
+<div id="app"></div>
+<script>
+  const app = document.getElementById("app");
+  function render() {
+    const t = totals();
+    const rows = t.items.map(({ p, q }) => `<div class="cart-item" data-cart-item data-pid="${p.id}">
+        <div><div class="title">${p.name}</div><div class="size">${p.size}</div><div class="price">${money(price(p) * q)}</div></div>
+        <div class="stepper"><button type="button" aria-label="Remove ${p.name}" data-dec>−</button><span data-qty>${q}</span><button type="button" aria-label="Add ${p.name}" data-inc>+</button></div></div>`).join("");
+    app.innerHTML = header() + `<main><h1>My Cart</h1>
+      <section aria-label="Cart items">${rows || '<p class="empty">You don\'t have any items in your cart</p>'}</section>
+      ${t.items.length ? `<section class="bill" aria-label="Bill details"><h2>Bill details</h2>
+        <div><span>Items total</span><span data-bill="items">${money(t.sub)}</span></div>
+        <div><span>Delivery charge</span><span data-bill="delivery">${t.delivery ? money(t.delivery) : "FREE"}</span></div>
+        <div><span>Handling charge</span><span data-bill="handling">${money(t.handling)}</span></div>
+        <div><b>Grand total</b><b data-bill="total">${money(t.total)}</b></div></section>
+        <a class="cta" href="checkout.html" role="button">Proceed to checkout</a>` : ""}</main>`;
+    wireCards(app, render);
+    renderCartCount();
+  }
+  render();
+</script>
+</body>
+</html>
