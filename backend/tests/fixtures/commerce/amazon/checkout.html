@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en-IN">
+<head><meta charset="utf-8"><title>Amazon.in (test fixture) Checkout</title><link rel="stylesheet" href="amazon.css"><script src="amazon.js"></script></head>
+<body>
+<div id="app"></div>
+<script>
+  const app = document.getElementById("app");
+  function render() {
+    const order = get("order", null);
+    if (order) {
+      app.innerHTML = nav() + `<main id="thankyou" data-order-confirmation><h1>Order placed, thank you!</h1>
+        <p>Confirmation will be sent to your email. Order # <span data-order-id>${order.id}</span> (TEST FIXTURE — no real order)</p></main>`;
+      return;
+    }
+    if (!flag("login")) {
+      app.innerHTML = nav() + `<main><h1>Sign in</h1><form name="signIn"><label>Email or mobile phone number <input id="ap_email" name="email" type="email"></label>
+        <label>Password <input id="ap_password" name="password" type="password"></label><input id="signInSubmit" type="submit" value="Sign in"></form></main>`;
+      return;
+    }
+    const lines = Object.entries(cart()).map(([asin, q]) => ({ p: CATALOG.find((x) => x.asin === asin), q })).filter((x) => x.p);
+    if (!lines.length) { app.innerHTML = nav() + "<main><h1>Checkout</h1><p>Your cart is empty.</p></main>"; return; }
+    const items = lines.reduce((a, x) => a + price(x.p) * x.q, 0);
+    const cod = flag("cod");
+    const method = get("method", null);
+    const codFee = method === "cod" ? 0 : 0;
+    const total = items + codFee;
+    const instruments = [
+      ["upi", "Other UPI Apps"], ["card", "Credit or debit card"], ["netbanking", "Net Banking"],
+      ...(cod ? [["cod", "Cash on Delivery/Pay on Delivery"]] : []),
+    ].map(([v, l]) => `<div class="pmts-instrument"><label><input type="radio" name="ppw-instrumentRowSelection" value="${v}" ${method === v ? "checked" : ""}> ${l}</label></div>`).join("");
+    const button = method === "cod"
+      ? '<span id="submitOrderButtonId"><input id="placeOrder" name="placeYourOrder1" type="submit" value="Place your order" aria-labelledby="submitOrderButtonId-announce"><span id="submitOrderButtonId-announce">Place your order</span></span>'
+      : method ? `<input id="pay-button" type="submit" value="Pay ${inr(total)}">` : '<input type="submit" value="Use this payment method" disabled>';
+    app.innerHTML = nav() + `<main id="checkout"><h1>Checkout</h1>
+      <div id="deliver-to-customer-text">Delivering to Fixture Customer</div>
+      <div id="deliver-to-address-text">42, Fixture Residency, MG Road, Bengaluru, KARNATAKA, 560001, India</div>
+      <div id="delivery-promise">Arriving 10 Nov 2026</div>
+      <div id="items">${lines.map(({ p, q }) => `<div class="a-row item" data-asin="${p.asin}"><span class="a-text-bold">${p.title}</span> <span>Quantity: ${q}</span> <span class="a-color-price">${inr(price(p) * q)}</span></div>`).join("")}</div>
+      <div id="payment-method-section"><h2>Payment method</h2>${cod ? "" : '<p id="cod-unavailable">Pay on Delivery is unavailable for this order.</p>'}${instruments}</div>
+      <table id="subtotals-marketplace-table">
+        <tr><td>Items:</td><td class="a-text-right">${inr(items)}</td></tr>
+        <tr><td>Delivery:</td><td class="a-text-right">${inr(0)}</td></tr>
+        <tr><td><b>Order Total:</b></td><td class="a-text-right"><b>${inr(total)}</b></td></tr>
+      </table>${button}</main>`;
+    app.querySelectorAll("input[name=ppw-instrumentRowSelection]").forEach((r) => r.addEventListener("change", () => { set("method", r.value); render(); }));
+    app.querySelector("#placeOrder")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      const submits = get("submits", 0) + 1; set("submits", submits);
+      setTimeout(() => { set("order", { id: "403-0000000-" + String(1000000 + submits) }); set("cart", {}); render(); }, 400);
+    });
+    app.querySelector("#pay-button")?.addEventListener("click", (e) => { e.preventDefault(); set("paid_attempt", true); });
+  }
+  render();
+</script>
+</body>
+</html>
