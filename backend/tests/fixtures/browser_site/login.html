@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8" /><title>Sign in — TaskPilot Demo Shop</title></head>
+<body>
+  <h1>Sign in</h1>
+  <form onsubmit="event.preventDefault(); document.getElementById('done').textContent='SUBMITTED';">
+    <label for="email">Email</label><input id="email" name="email" type="email" />
+    <label for="pw">Password</label><input id="pw" name="password" type="password" />
+    <label for="otp">One-time code (OTP)</label><input id="otp" name="otp" autocomplete="one-time-code" />
+    <button type="submit">Sign in</button>
+  </form>
+  <p id="done"></p>
+</body>
+</html>
